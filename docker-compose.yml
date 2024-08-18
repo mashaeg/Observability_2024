@@ -136,6 +136,16 @@ services:
       db:
         condition: service_healthy
 
+  flask_app:
+    build:
+      context: ./flask_app  # Directory containing your Dockerfile and app.py
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    networks:
+      - monitoring
+    restart: always
+
 networks:
   monitoring:
   cms_net:

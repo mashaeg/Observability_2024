@@ -28,6 +28,8 @@
 ## Install Wordpress
 http://localhost:8080/wp-admin/install.php
 
+## Pro, reload
+curl -X POST http://localhost:9090/-/reload
 
 ## Docker debug
 docker compose down

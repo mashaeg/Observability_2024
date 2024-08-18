@@ -58,10 +58,14 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--web.enable-lifecycle'
+    dns: 127.0.0.11
     ports:
       - 9090:9090
     networks:
       - monitoring
+    depends_on:
+      - viktoria_metrics
+    restart: always 
 
   alertmanager:
     image: prom/alertmanager:latest
@@ -145,7 +149,24 @@ services:
     networks:
       - monitoring
     restart: always
+  
+  viktoria_metrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: viktoria_metrics
+    volumes:
+      - ./viktoria_data:/victoria-metrics-data # Persistent data storage
+    dns: 127.0.0.11
+    ports:
+      - "8428:8428"
+    command: 
+      - '-storageDataPath=/victoria-metrics-data'  # Set data storage path
+      - '-retentionPeriod=2w'  # Set retention period
+    networks:
+      - monitoring
+    restart: always
 
 networks:
   monitoring:
+    name: maria_monitoring
   cms_net:
+    name: maria_cms_net

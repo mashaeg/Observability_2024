@@ -2,6 +2,8 @@ global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 15s
+  external_labels:
+    site: prod
 
 alerting:
   alertmanagers:
@@ -39,7 +41,7 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - target_label: __address__
-        replacement: blackbox_exporter:9115
+        replacement: 'blackbox_exporter:9115'
 
   - job_name: 'flask_app'
     metrics_path: /metrics
@@ -48,4 +50,12 @@ scrape_configs:
 
   - job_name: 'pushgateway'
     static_configs:
-      - targets: ['pushgateway:9091'] 
+      - targets: ['pushgateway:9091']
+  
+  - job_name: 'viktoria_metrics'
+    static_configs:
+      - targets: ['viktoria_metrics:8428']
+
+remote_write:
+  - url: "http://viktoria_metrics:8428/api/v1/write"
+  

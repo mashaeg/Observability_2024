@@ -1,4 +1,24 @@
 groups:
+- name: test-alerts
+  rules:
+    - alert: TestAlertCritical
+      expr: vector(1)  # This condition is always true, triggering the alert immediately.
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "This is a test critical alert"
+        description: "This alert is used to test the critical alert routing to Telegram."
+
+    - alert: TestAlertWarning
+      expr: vector(1)
+      for: 1m
+      labels:
+        severity: warning
+      annotations:
+        summary: "This is a test warning alert"
+        description: "This alert is used to test the warning alert routing to Telegram."
+
 - name: instance_health
   rules:
   - alert: InstanceDown

@@ -9,6 +9,7 @@ db_data/
 viktoria_data/
 htpasswd/
 *.cache/
+*.env*
 *.dotnet/
 *.docker/
 *.vscode-server/

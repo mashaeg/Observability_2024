@@ -1,0 +1,66 @@
+groups:
+- name: instance_health
+  rules:
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "The instance {{ $labels.instance }} is down for more than 1 minute."
+
+- name: cpu_usage
+  rules:
+  - alert: HighCpuUsage
+    expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High CPU Usage on {{ $labels.instance }}"
+      description: "CPU usage has been above 80% for the last 5 minutes on {{ $labels.instance }}."
+
+- name: memory_usage
+  rules:
+  - alert: HighMemoryUsage
+    expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 20
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High Memory Usage on {{ $labels.instance }}"
+      description: "Memory available is less than 20% on {{ $labels.instance }} for the last 5 minutes."
+
+- name: disk_space
+  rules:
+  - alert: LowDiskSpace
+    expr: (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) < 0.15
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Low Disk Space on {{ $labels.instance }}"
+      description: "Available disk space is less than 15% on {{ $labels.instance }}."
+
+- name: nginx_availability
+  rules:
+  - alert: NginxDown
+    expr: up{job="nginx_exporter"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Nginx is down"
+      description: "The Nginx server is not responding and has been down for more than 1 minute."
+
+- name: cms_availability
+  rules:
+  - alert: CmsUnreachable
+    expr: probe_success{job="blackbox"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "CMS is unreachable"
+      description: "The CMS is unreachable (HTTP 200 not received) for more than 1 minute."

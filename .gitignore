@@ -1,0 +1,20 @@
+# ignore ALL .log files
+*.log
+
+# ignore ALL files in ANY directory named temp
+temp/
+wp_data/
+db_data/
+htpasswd/
+*.cache/
+*.dotnet/
+*.docker/
+*.vscode-server/
+*.bash*
+*.less*
+*.gitconfig
+*.motd_shown
+*.profile
+*.sudo_as_admin_successful
+.viminfo
+*.local/

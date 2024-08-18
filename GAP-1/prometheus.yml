@@ -2,8 +2,6 @@ global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 15s
-  external_labels:
-    site: prod
 
 alerting:
   alertmanagers:
@@ -58,4 +56,7 @@ scrape_configs:
 
 remote_write:
   - url: "http://viktoria_metrics:8428/api/v1/write"
-  
+    write_relabel_configs:
+      - action: replace
+        target_label: site
+        replacement: prod

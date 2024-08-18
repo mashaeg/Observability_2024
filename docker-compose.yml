@@ -57,6 +57,8 @@ services:
         - ./GAP-1/alert.rules.yml:/etc/prometheus/alert.rules.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=1w'
+      - '--storage.tsdb.path=/prometheus'
       - '--web.enable-lifecycle'
     dns: 127.0.0.11
     ports:
@@ -72,8 +74,13 @@ services:
     container_name: alertmanager
     volumes:
       - ./GAP-1/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
     ports:
       - "9093:9093"
+    expose:
+      - 9093
     networks:
       - monitoring
 
@@ -161,6 +168,7 @@ services:
     command: 
       - '-storageDataPath=/victoria-metrics-data'  # Set data storage path
       - '-retentionPeriod=2w'  # Set retention period
+      - "--httpListenAddr=:8428"
     networks:
       - monitoring
     restart: always
@@ -168,5 +176,6 @@ services:
 networks:
   monitoring:
     name: maria_monitoring
+    driver: bridge
   cms_net:
     name: maria_cms_net

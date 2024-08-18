@@ -10,8 +10,6 @@ The objective was to enhance our Prometheus setup with a long-term storage solut
 - **Retention Policy**: Set a retention period of 2 weeks for metrics.
 - **Label Addition**: Ensure that all metrics stored include an additional label `site: prod` to indicate the production environment.
 
-## Implemented Solution
-
 ### Services Added/Modified
 
 1. **VictoriaMetrics**:
@@ -47,3 +45,8 @@ Prometheus Targets/Service Discovery: http://<prometheus-host>:9090/targets  ##r
 ### find container IP
 docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' viktoria_metrics
 
+### adding label
+
+The write_relabel_configs section under remote_write ensures that the site: prod label is added only when metrics are sent to VictoriaMetrics. This configuration means that the label is not added during scraping or local storage but specifically during the remote write process.
+
+Run a Query in VictoriaMetrics:  up{site="prod"}

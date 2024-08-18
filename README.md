@@ -30,3 +30,22 @@ http://localhost:8080/wp-admin/install.php
 
 
 ## Docker debug
+docker compose down
+docker compose up -d
+
+## Manual run
+docker run --rm -it   --name mysql_exporter   --network maria_monitoring   -e DATA_SOURCE_NAME="root:root_password@tcp(db:3306)/"   prom/mysqld-exporter:v0.12.1
+
+## #what ip has container cms
+docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cms
+
+## push to git
+git push --force origin domz1
+
+## install lab: Create VM and install docker. Clone Repo.
+
+## Debug: Fix rights (The user 472 corresponds to the Grafana user inside the container.)
+
+sudo chown -R www-data:www-data /home/maria/wp_data
+sudo chown -R 999:root /home/maria/db_data
+sudo chown -R 472:0 ./grafana_data

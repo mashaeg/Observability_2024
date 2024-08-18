@@ -4,6 +4,7 @@
 # ignore ALL files in ANY directory named temp
 temp/
 wp_data/
+grafana_data/
 db_data/
 htpasswd/
 *.cache/

@@ -45,3 +45,7 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       - targets: ['flask_app:5000'] 
+
+  - job_name: 'pushgateway'
+    static_configs:
+      - targets: ['pushgateway:9091'] 

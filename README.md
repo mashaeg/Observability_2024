@@ -51,3 +51,8 @@ git push --force origin domz1
 sudo chown -R www-data:www-data /home/maria/wp_data
 sudo chown -R 999:root /home/maria/db_data
 sudo chown -R 472:0 ./grafana_data
+
+## Requests
+echo "<metric_name> <value>" | curl --data-binary @- http://<pushgateway_address>:<pushgateway_port>/metrics/job/<job_name>/instance/<instance_name>
+echo "temperature 25" | curl --data-binary @- http://pushgateway:9091/metrics/job/temperature_metrics/instance/pushgateway
+querying in Prom: temperature{job="pushgateway", instance="pushgateway:9091"}

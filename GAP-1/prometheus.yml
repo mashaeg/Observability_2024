@@ -6,7 +6,7 @@ global:
 alerting:
   alertmanagers:
     - static_configs:
-        - targets: ['alertmanager:9093']
+        - targets: ['localhost:9093']
 
 rule_files:
   - /etc/prometheus/alert.rules.yml
@@ -14,19 +14,35 @@ rule_files:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9090'
 
   - job_name: 'node_exporter'
     static_configs:
       - targets: ['node_exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9100'
 
   - job_name: 'mysql_exporter'
     static_configs:
       - targets: ['mysql_exporter:9104']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9104'
 
   - job_name: 'nginx_exporter'
     static_configs:
       - targets: ['nginx_exporter:9113']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9113'
 
   - job_name: 'blackbox'
     metrics_path: /probe
@@ -34,28 +50,43 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://172.19.0.6:80  # Replace with your CMS IP
+          - http://cms:80
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - target_label: __address__
-        replacement: 'blackbox_exporter:9115'
+        replacement: '172.20.0.2:9115'      #<BLACKBOX_CONTAINER_IP>:9115; docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' blackbox_exporter
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9115'
 
   - job_name: 'flask_app'
     metrics_path: /metrics
     static_configs:
-      - targets: ['flask_app:5000'] 
+      - targets: ['flask_app:5000']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:5000'
 
   - job_name: 'pushgateway'
     static_configs:
       - targets: ['pushgateway:9091']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:9091'
   
   - job_name: 'viktoria_metrics'
     static_configs:
       - targets: ['viktoria_metrics:8428']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'localhost:8428'
 
 remote_write:
-  - url: "http://viktoria_metrics:8428/api/v1/write"
+  - url: "http://localhost:8428/api/v1/write"
     write_relabel_configs:
       - action: replace
         target_label: site

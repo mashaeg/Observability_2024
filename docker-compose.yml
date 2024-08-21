@@ -60,7 +60,6 @@ services:
       - '--storage.tsdb.retention.time=1w'
       - '--storage.tsdb.path=/prometheus'
       - '--web.enable-lifecycle'
-    dns: 127.0.0.11
     ports:
       - 9090:9090
     networks:
@@ -108,11 +107,10 @@ services:
     networks:
       - monitoring
 
-
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: nginx_exporter
-    command: -nginx.scrape-uri=http://nginx:8080/stub_status
+    command: -nginx.scrape-uri=http://localhost:8080/stub_status
     ports:
       - "9113:9113"
     networks:
@@ -164,7 +162,6 @@ services:
     container_name: viktoria_metrics
     volumes:
       - ./viktoria_data:/victoria-metrics-data # Persistent data storage
-    dns: 127.0.0.11
     ports:
       - "8428:8428"
     command: 

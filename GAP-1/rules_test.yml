@@ -1,0 +1,21 @@
+rule_files:
+  - /etc/prometheus/alert.rules.yml
+
+evaluation_interval: 1m
+
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{instance="localhost:9090"}'
+        values: '1 1 0 0'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: InstanceDown
+        exp_alerts:
+          - exp_labels:
+              alertname: InstanceDown
+              instance: "localhost:9090"
+              severity: critical
+            exp_annotations:
+              summary: "Instance localhost:9090 down"
+              description: "The instance localhost:9090 is down for more than 1 minute."

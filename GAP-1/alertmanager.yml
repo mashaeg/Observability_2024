@@ -1,46 +1,13 @@
-global:
-  resolve_timeout: 5m
-
 route:
-  receiver: 'telegram-warning'  # Specify a default receiver
-  group_by: ['alertname']
-  group_wait: 30s
-  group_interval: 5m
-  repeat_interval: 1h
-  routes:
-    - match:
-        severity: critical
-      receiver: 'telegram-critical'
-    - match:
-        severity: warning
-      receiver: 'telegram-warning'
+  receiver: 'telegram'
 
 receivers:
-  - name: 'telegram-critical'
+  - name: 'telegram'
     telegram_configs:
       - send_resolved: true
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
+        api_url: https://api.telegram.org
+        bot_token: '7027757101:AAFhBOSmMxiSwFe9jnU1uu9_h0lbyGqo-GE'
         chat_id: 416835955
         message: |
-          *Alert:* {{ .CommonLabels.alertname }}
-          *Severity:* {{ .CommonLabels.severity }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-
-  - name: 'telegram-warning'
-    telegram_configs:
-      - send_resolved: true
-        bot_token: '${TELEGRAM_BOT_TOKEN}'
-        chat_id: 416835955
-        message: |
-          *Alert:* {{ .CommonLabels.alertname }}
-          *Severity:* {{ .CommonLabels.severity }}
-          *Summary:* {{ .Annotations.summary }}
-          *Description:* {{ .Annotations.description }}
-
-inhibit_rules:
-  - source_match:
-      severity: critical
-    target_match:
-      severity: warning
-    equal: ['alertname', 'instance']
+          *Hardcoded Alert:*
+          *Summary:* This is a hardcoded test summary

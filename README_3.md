@@ -31,5 +31,26 @@ https://api.telegram.org/bot<your_bot_token>/getUpdates
 https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a
 https://api.telegram.org/bot637xxxxxx71:AAFoxxxxxn0hwA-2TVSxxxNf4c/getUpdates
 
+### Manual Testing with promtool
+1. Create a rules_test.yml File. This file specifies that it expects the InstanceDown alert to trigger when the up metric is 0.
+rule_files:
+  - /etc/prometheus/alert.rules.yml
 
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'up{job="example", instance="localhost:9090"}'
+        values: '1 1 0'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: InstanceDown
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+              instance: "localhost:9090"
+2. Run promtool in a Docker Container
+
+docker run --rm -v ~/GAP-1:/etc/prometheus --entrypoint=/bin/promtool prom/prometheus:latest test rules /etc/prometheus/rules_test.yml
+
+3. After running the command, promtool will output the results of the tests. If the rules are valid and behave as expected, you’ll see a success message. If there are issues, promtool will describe the problems, allowing you to fix them.
 

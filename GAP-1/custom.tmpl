@@ -1,0 +1,25 @@
+{{ define "telegram.default.message" }}
+🔔 *Alert:* {{ or .CommonLabels.alertname "N/A" }}
+*Severity:* {{ or .CommonLabels.severity "N/A" }}
+
+*Summary:* {{ or .CommonAnnotations.summary "No summary provided." }}
+*Description:* {{ or .CommonAnnotations.description "No description provided." }}
+
+*Active Since:* 
+{{ range .Alerts.Firing }}
+  {{ if .StartsAt }}{{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}{{ else }}N/A{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "slack.default.message" }}
+*Alert:* {{ or .CommonLabels.alertname "N/A" }}
+*Severity:* {{ or (toUpper .CommonLabels.severity) "N/A" }}
+
+*Summary:* {{ or .CommonAnnotations.summary "No summary provided." }}
+*Description:* {{ or .CommonAnnotations.description "No description provided." }}
+
+*Active Since:* 
+{{ range .Alerts.Firing }}
+  {{ if .StartsAt }}{{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}{{ else }}N/A{{ end }}
+{{ end }}
+{{ end }}

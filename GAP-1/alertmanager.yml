@@ -1,13 +1,40 @@
+global:
+  resolve_timeout: 5m
+
 route:
-  receiver: 'telegram'
+  receiver: 'default-receiver'
+  group_by: ['alertname', 'severity']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 1h
+  routes:
+    - match:
+        severity: critical
+      receiver: telegram
+
+    - match:
+        severity: warning
+      receiver: slack
 
 receivers:
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: 'https://webhook.site/51b8ccfe-9492-4507-afb7-0536a2bb146b'
+
   - name: 'telegram'
     telegram_configs:
       - send_resolved: true
         api_url: https://api.telegram.org
-        bot_token: '7027757101:AAFhBOSmMxiSwFe9jnU1uu9_h0lbyGqo-GE'
+        bot_token: '7227233537:AAFZ9HArr2ccLT8kqX65RE1RLT7wNQ-OGrA'
         chat_id: 416835955
-        message: |
-          *Hardcoded Alert:*
-          *Summary:* This is a hardcoded test summary
+        message: '{{ template "telegram.default.message" . }}'
+
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        api_url: 'https://hooks.slack.com/services/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'
+        channel: '#test'
+        text: '{{ template "slack.default.message" . }}'
+
+templates:
+  - '/etc/alertmanager/custom.tmpl'

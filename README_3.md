@@ -31,26 +31,25 @@ https://api.telegram.org/bot<your_bot_token>/getUpdates
 https://gist.github.com/nafiesl/4ad622f344cd1dc3bb1ecbe468ff9f8a
 https://api.telegram.org/bot637xxxxxx71:AAFoxxxxxn0hwA-2TVSxxxNf4c/getUpdates
 
-### Manual Testing with promtool
-1. Create a rules_test.yml File. This file specifies that it expects the InstanceDown alert to trigger when the up metric is 0.
-rule_files:
-  - /etc/prometheus/alert.rules.yml
+## Alertmanager uses Go templating to format alert notifications sent to different receivers like email, Slack, or Telegram. By default, Alertmanager has a set of templates that it uses for these notifications. However, you can override these default templates to customize how alerts are presented based on your needs.
 
-tests:
-  - interval: 1m
-    input_series:
-      - series: 'up{job="example", instance="localhost:9090"}'
-        values: '1 1 0'
-    alert_rule_test:
-      - eval_time: 2m
-        alertname: InstanceDown
-        exp_alerts:
-          - exp_labels:
-              severity: critical
-              instance: "localhost:9090"
-2. Run promtool in a Docker Container
+Create a file (e.g., custom.tmpl) where you define your custom templates and Reference the Custom Template in Your alertmanager.yml
 
-docker run --rm -v ~/GAP-1:/etc/prometheus --entrypoint=/bin/promtool prom/prometheus:latest test rules /etc/prometheus/rules_test.yml
+-telegram.default.message is the name of the template you can reference later.
+-This template uses various .CommonLabels and .Annotations from the alert to build a structured message.
+-The message field under telegram_configs uses the custom template defined earlier (telegram.default.message).
+-The templates section at the bottom tells Alertmanager where to find the custom template file.
 
-3. After running the command, promtool will output the results of the tests. If the rules are valid and behave as expected, you’ll see a success message. If there are issues, promtool will describe the problems, allowing you to fix them.
+## Alert Testing  -   SWITCH ON expr: vector(1) for alert.rules
+Slack: After one minute, this alert should fire and be routed to Slack because it has a severity: warning label.
+Telegram: It should not receive this alert because Telegram is only configured to receive severity: critical alerts.
 
+TestCriticalAlert Alert: This synthetic alert triggers immediately and is used to test the critical severity configuration for Telegram.
+TestWarningAlert Alert: This synthetic alert also triggers immediately but is labeled as a warning severity and will be sent to Slack.
+
+The or function in the template is used as a fallback mechanism to ensure that the message still displays useful information even if certain fields are missing or empty. Here's a breakdown:
+How the or Function Works:
+
+    {{ or .CommonLabels.alertname "N/A" }}: This line means:
+        If .CommonLabels.alertname exists and has a value, use it.
+        If .CommonLabels.alertname is missing or empty, use "N/A" instead

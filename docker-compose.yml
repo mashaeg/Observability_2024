@@ -73,6 +73,7 @@ services:
     container_name: alertmanager
     volumes:
       - ./GAP-1/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./GAP-1/custom.tmpl:/etc/alertmanager/custom.tmpl
     command:
       - '--config.file=/etc/alertmanager/alertmanager.yml'
       - '--log.level=debug'

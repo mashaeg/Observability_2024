@@ -1,0 +1,20 @@
+groups:
+  - name: example-alerts
+    rules:
+      - alert: TestWarningAlert
+        expr: vector(0)  # Always evaluates to true if 1 
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Test Warning Alert"
+          description: "This is a test alert with severity warning to verify Slack integration."
+
+      - alert: TestCriticalAlert
+        expr: vector(0)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Test Critical Alert"
+          description: "This is a test alert to verify the Alertmanager configuration for critical severity."

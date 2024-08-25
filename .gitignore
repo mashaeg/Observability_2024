@@ -8,6 +8,7 @@ grafana_data/
 db_data/
 viktoria_data/
 htpasswd/
+backups/
 *.cache/
 *.env*
 *.dotnet/

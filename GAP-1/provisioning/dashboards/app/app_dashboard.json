@@ -1,0 +1,23 @@
+{
+    "dashboard": {
+      "id": null,
+      "title": "CMS Dashboard",
+      "panels": [
+        {
+          "type": "stat",
+          "title": "CMS Uptime",
+          "targets": [
+            {
+              "expr": "probe_success{job='cms'}",
+              "legendFormat": "Uptime",
+              "refId": "A"
+            }
+          ]
+        }
+      ],
+      "schemaVersion": 30,
+      "version": 1
+    },
+    "overwrite": true
+  }
+  

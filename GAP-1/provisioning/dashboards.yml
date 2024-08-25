@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: 'infra-dashboards'
+    folder: 'infra'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards/infra
+  - name: 'app-dashboards'
+    folder: 'app'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards/app

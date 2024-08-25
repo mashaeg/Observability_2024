@@ -2,6 +2,12 @@ global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 5s
+  scrape_protocols:
+  - OpenMetricsText1.0.0
+  - OpenMetricsText0.0.1
+  - PrometheusText0.0.4
+  external_labels:
+    environment: prometheus-demo
 
 alerting:
   alertmanagers:
@@ -14,36 +20,69 @@ rule_files:
 
 scrape_configs:
   - job_name: prometheus
+    honor_timestamps: true
+    track_timestamps_staleness: false
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scrape_protocols:
+    - OpenMetricsText1.0.0
+    - OpenMetricsText0.0.1
+    - PrometheusText0.0.4
+    metrics_path: /metrics
+    scheme: http
     static_configs:
-      - targets: ['prometheus:9090']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:9090'
+      - targets: ['localhost:9090']
 
-  - job_name: node_exporter
+  - job_name: node
+    honor_timestamps: true
+    track_timestamps_staleness: false
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scrape_protocols:
+    - OpenMetricsText1.0.0
+    - OpenMetricsText0.0.1
+    - PrometheusText0.0.4
+    metrics_path: /metrics
+    scheme: http
     static_configs:
-      - targets: ['node_exporter:9100']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:9100'
+      - targets: 
+        - '172.19.0.18:9100'  # Node Exporter
 
   - job_name: mysql_exporter
     static_configs:
-      - targets: ['mysql_exporter:9104']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:9104'
+      - targets: ['172.19.0.20:9104']  # MySQL Exporter
 
   - job_name: nginx_exporter
     static_configs:
-      - targets: ['nginx_exporter:9113']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:9113'
+      - targets: ['172.19.0.17:9113']  # NGINX Exporter
+  
+  - job_name: grafana
+    honor_timestamps: true
+    track_timestamps_staleness: false
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scrape_protocols:
+    - OpenMetricsText1.0.0
+    - OpenMetricsText0.0.1
+    - PrometheusText0.0.4
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['172.19.0.16:3000']  # Grafana
+
+  - job_name: alertmanager
+    honor_timestamps: true
+    track_timestamps_staleness: false
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    scrape_protocols:
+    - OpenMetricsText1.0.0
+    - OpenMetricsText0.0.1
+    - PrometheusText0.0.4
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ['172.19.0.14:9093']  # Alertmanager
 
   - job_name: blackbox
     metrics_path: /probe
@@ -51,44 +90,32 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://cms:80
+          - http://172.19.0.10:80  # CMS
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
-      - target_label: __address__
-        replacement: '172.19.0.10:9115'
-      - source_labels: [__address__]
+      - source_labels: [__param_target]
         target_label: instance
-        replacement: 'localhost:9115'
+      - target_label: __address__
+        replacement: 172.19.0.19:9115  # Blackbox Exporter
 
   - job_name: flask_app
     metrics_path: /metrics
     static_configs:
-      - targets: ['flask_app:5000']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:5000'
+      - targets: ['172.19.0.21:5000']  # Flask App
 
   - job_name: pushgateway
+    honor_labels: true
     static_configs:
-      - targets: ['pushgateway:9091']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:9091'
-  
+      - targets: ['172.19.0.15:9091']  # Pushgateway
+
   - job_name: viktoria_metrics
     static_configs:
-      - targets: ['viktoria_metrics:8428']
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: instance
-        replacement: 'localhost:8428'
+      - targets: ['172.19.0.22:8428']  # Victoria Metrics
 
 remote_write:
-  - url: "http://localhost:8428/api/v1/write"
+  - url: "http://172.19.0.22:8428/api/v1/write"  # Victoria Metrics
     write_relabel_configs:
-      - action: replace
+      - source_labels: [__address__]
         target_label: site
-        replacement: prod
+        replacement: 'prod'

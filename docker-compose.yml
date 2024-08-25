@@ -15,8 +15,8 @@ services:
     depends_on:
       - db
     networks:
-      - monitoring
-      - cms_net
+      monitoring:
+        ipv4_address: 172.19.0.10
 
   db:
     image: mysql:5.7
@@ -30,8 +30,8 @@ services:
     volumes:
       - ./db_data:/var/lib/mysql
     networks:
-      - monitoring
-      - cms_net
+      monitoring:
+        ipv4_address: 172.19.0.11
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 30s
@@ -46,8 +46,10 @@ services:
     volumes:
       - ./nginx_conf:/etc/nginx/conf.d
     networks:
-      - monitoring
-      - cms_net
+      monitoring:
+        ipv4_address: 172.19.0.12
+    depends_on:
+      - cms
 
   prometheus:
     image: prom/prometheus:latest
@@ -63,7 +65,8 @@ services:
     ports:
       - 9090:9090
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.13
     depends_on:
       - viktoria_metrics
     restart: always 
@@ -85,7 +88,8 @@ services:
     expose:
       - 9093
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.14
 
   pushgateway:
     image: prom/pushgateway:latest
@@ -93,7 +97,8 @@ services:
     ports:
       - "9091:9091"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.15
 
   grafana:
     image: grafana/grafana:9.5.15
@@ -104,37 +109,55 @@ services:
     volumes:
       - ./grafana_data:/var/lib/grafana  # Grafana data storage
       - ./GAP-1/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./GAP-1/provisioning:/etc/grafana/provisioning  # Mount the entire provisioning directory
     ports:
       - "3000:3000"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.16
 
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter:latest
     container_name: nginx_exporter
-    command: -nginx.scrape-uri=http://localhost:8080/stub_status
+    ##command: -nginx.scrape-uri=http://localhost:8080/stub_status
+    command: --nginx.scrape-uri=http://nginx:80/stub_status
     ports:
       - "9113:9113"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.17
     depends_on:
       - nginx
 
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude'
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($|/)"
     ports:
       - 9100:9100
+    volumes:
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.18
 
   blackbox_exporter:
     image: prom/blackbox-exporter:latest
     container_name: blackbox_exporter
     ports:
       - 9115:9115
+    volumes:
+      - ./GAP-1/blackbox.yml:/config/blackbox.yml
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.19
 
   mysql_exporter:
     image: prom/mysqld-exporter:v0.12.1
@@ -144,7 +167,8 @@ services:
     ports:
       - "9104:9104"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.20
     depends_on:
       db:
         condition: service_healthy
@@ -156,7 +180,8 @@ services:
     ports:
       - "5000:5000"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.21
     restart: always
   
   viktoria_metrics:
@@ -171,12 +196,13 @@ services:
       - '-retentionPeriod=2w'  # Set retention period
       - "--httpListenAddr=:8428"
     networks:
-      - monitoring
+      monitoring:
+        ipv4_address: 172.19.0.22
     restart: always
 
 networks:
   monitoring:
-    name: maria_monitoring
     driver: bridge
-  cms_net:
-    name: maria_cms_net
+    ipam:
+      config:
+        - subnet: 172.19.0.0/24

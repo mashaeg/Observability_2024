@@ -1,4 +1,29 @@
+
+
 ## Grafana Dashboard Panels Overview
+
+## App Dashboard
+
+This table provides an overview of the key panels and their corresponding queries used in the Grafana dashboard.
+
+| **Panel Name**             | **Metric / Query**                                                                                                                                     | **Description**                                          |
+|----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
+| **Total HTTP Requests**     | `rate(nginx_http_requests_total{instance=~"$host"}[$interval])`                                                                                        | Shows the rate of HTTP requests processed by Nginx.      |
+| **Active Connections**      | `nginx_connections_active{instance=~"$host"}`                                                                                                          | Displays the current number of active connections to Nginx. |
+| **CMS Availability**        | `probe_success{instance="http://172.19.0.10:80", job="blackbox"}`                                                                                      | Indicates whether the CMS is up (`1`) or down (`0`).     |
+| **CMS Response Time**       | `probe_duration_seconds{instance="http://172.19.0.10:80", job="blackbox"}`                                                                             | Tracks the time taken for the CMS to respond.            |
+| **MySQL Queries Per Second**| `rate(mysql_global_status_queries{instance="$host"}[5m])`                                                                                              | Shows the rate of queries processed by MySQL.            |
+| **CPU Usage**               | `sum(rate(node_cpu_seconds_total{instance=~"$host", mode!="idle"}[$interval])) by (mode) / sum(rate(node_cpu_seconds_total{instance=~"$host"}[$interval])) * 100` | Displays CPU utilization as a percentage.               |
+| **Memory Usage**            | `100 - ((node_memory_MemAvailable_bytes{instance=~"$host"} * 100) / node_memory_MemTotal_bytes{instance=~"$host"})`                                    | Shows the percentage of used memory on the system.       |
+
+### Notes:
+- **$host:** Refers to the selected host(s) from the dashboard dropdown.
+- **$interval:** Refers to the selected time interval (e.g., 1m, 5m).
+- The queries use `=~"$host"` to allow for multi-host selection in the dropdown.
+
+
+
+## System Overview Dashboard
 | **Panel Name**            | **Metric(s) Used**                                                                                                      | **Prometheus Query**                                                                                                                                          | **Visualization Type** | **Description**                                                                                   |
 |---------------------------|------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------|---------------------------------------------------------------------------------------------------|
 | **CPU Usage**             | `node_cpu_seconds_total`                                                                                                | `sum(rate(node_cpu_seconds_total{instance="$host", mode!="idle"}[5m])) / sum(rate(node_cpu_seconds_total{instance="$host"}[5m])) * 100`                      | Time Series, Gauge     | Displays the percentage of CPU utilization across all cores, excluding idle time.                |
@@ -12,3 +37,4 @@
 | **Running Processes**     | `node_procs_running`, `node_procs_blocked`                                                                              | `node_procs_running{instance="$host"}`, `node_procs_blocked{instance="$host"}`                                                                                | Stat, Time Series      | Displays the number of running and blocked processes.                                             |
 | **Context Switches**      | `node_context_switches_total`                                                                                           | `rate(node_context_switches_total{instance="$host"}[5m])`, `irate(node_context_switches_total{instance="$host"}[5m])`                                        | Time Series            | Monitors the rate of context switches per second.                                                 |
 | **Interrupts**            | `node_intr_total`                                                                                                       | `rate(node_intr_total{instance="$host"}[5m])`, `irate(node_intr_total{instance="$host"}[5m])`                                                                | Time Series            | Tracks the rate of hardware interrupts per second.                                                |
+

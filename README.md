@@ -1,22 +1,22 @@
 # Observability2025
-# 1 ДЗ : Установка и настройка Prometheus, использование exporters
+## 1st Assignment: Setting up and Configuring Prometheus, Using Exporters
 
-Установить и настроить Prometheus для мониторинга системы с использованием Docker. Собрать метрики со всех компонентов системы, включая CMS, Nginx, PHP-FPM, MySQL, а также доступность сервиса с помощью blackbox exporter.
+You need to install and configure Prometheus for system monitoring using Docker. The task involves collecting metrics from all system components, including CMS, Nginx, PHP-FPM, MySQL, and checking service availability using the blackbox exporter.
 
-## Структура проекта
+### Project Structure
 
-- `docker-compose.yml` — основной файл для запуска всех сервисов.
-- `GAP-1/` — директория с конфигурациями для Prometheus и Alertmanager.
-- `README.md` — документация по проекту.
+- `docker-compose.yml` — main file for launching all services.
+- `GAP-1/` — directory containing configurations for Prometheus and Alertmanager.
+- `README.md` — documentation for the project.
 
-## Метрики
+### Metrics
 
-Система собирает метрики с:
-- Виртуальной машины (используя Node Exporter).
-- Доступности CMS (используя Blackbox Exporter).
-- Nginx, PHP-FPM, и MySQL.
+The system collects metrics from:
+- The virtual machine (using Node Exporter).
+- CMS availability (using Blackbox Exporter).
+- Nginx, PHP-FPM, and MySQL.
 
-## Использованные технологии
+### Technologies Used
 
 - Docker 27.1.2, Docker Compose V2
 - Prometheus
@@ -25,34 +25,74 @@
 - Nginx
 - PHP-FPM
 
-## Install Wordpress
+### Install WordPress
+To install WordPress, visit:  
 http://localhost:8080/wp-admin/install.php
 
-## Pro, reload
+### Prometheus Reload
+To reload Prometheus configuration, use:
+```bash
 curl -X POST http://localhost:9090/-/reload
+```
 
-## Docker debug
+### Docker Debugging Commands
+To bring services down:  
+```bash
 docker compose down
+```  
+To bring services up in detached mode:  
+```bash
 docker compose up -d
+```
 
-## Manual run
-docker run --rm -it   --name mysql_exporter   --network maria_monitoring   -e DATA_SOURCE_NAME="root:root_password@tcp(db:3306)/"   prom/mysqld-exporter:v0.12.1
+### Manual Run for MySQL Exporter
+To manually run the MySQL exporter:  
+```bash
+docker run --rm -it --name mysql_exporter --network maria_monitoring -e DATA_SOURCE_NAME="root:root_password@tcp(db:3306)/" prom/mysqld-exporter:v0.12.1
+```
 
-## #what ip has container cms
+### Check CMS Container IP
+To get the IP address of the CMS container:  
+```bash
 docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cms
+```
 
-## push to git
+### Push to Git
+To push the changes to the Git repository:  
+```bash
 git push --force origin domz1
+```
 
-## install lab: Create VM and install docker. Clone Repo.
+### Installing Lab: Create VM and Install Docker
+To set up the lab environment, create a virtual machine, install Docker, and clone the repository.
 
-## Debug: Fix rights (The user 472 corresponds to the Grafana user inside the container.)
+### Debug: Fixing File Permissions
+Fix file permissions for different components:
 
-sudo chown -R www-data:www-data /home/maria/wp_data
-sudo chown -R 999:root /home/maria/db_data
-sudo chown -R 472:0 ./grafana_data
+- WordPress data:  
+  ```bash
+  sudo chown -R www-data:www-data /home/maria/wp_data
+  ```
+- Database data:  
+  ```bash
+  sudo chown -R 999:root /home/maria/db_data
+  ```
+- Grafana data:  
+  ```bash
+  sudo chown -R 472:0 ./grafana_data
+  ```
 
-## Requests
+### Sending Custom Metrics to Pushgateway
+To send custom metrics to Pushgateway:
+```bash
 echo "<metric_name> <value>" | curl --data-binary @- http://<pushgateway_address>:<pushgateway_port>/metrics/job/<job_name>/instance/<instance_name>
+```
+Example:  
+```bash
 echo "temperature 25" | curl --data-binary @- http://pushgateway:9091/metrics/job/temperature_metrics/instance/pushgateway
-querying in Prom: temperature{job="pushgateway", instance="pushgateway:9091"}
+```
+
+To query the metrics in Prometheus:  
+```promql
+temperature{job="pushgateway", instance="pushgateway:9091"}
+```

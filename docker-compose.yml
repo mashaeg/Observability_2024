@@ -24,12 +24,12 @@ services:
     platform: linux/amd64  # Adding platform specifier
     restart: always
     environment:
+      MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress_password
-      MYSQL_ROOT_PASSWORD: root_password
     volumes:
-      - ./db_data:/var/lib/mysql
+    - db_data:/var/lib/mysql
     networks:
       monitoring:
         ipv4_address: 172.19.0.11
@@ -138,15 +138,14 @@ services:
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
-    platform: linux/amd64  # Adding platform specifier
     command:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude'
-      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($|/)"
+      - '--no-collector.arp'  # Correct way to disable ARP collector
+      - '--collector.filesystem.mount-points-exclude="^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($|/)"'
     ports:
-      - 9100:9100
+      - "9100:9100"
     volumes:
       - "/proc:/host/proc:ro"
       - "/sys:/host/sys:ro"
@@ -216,3 +215,6 @@ networks:
     ipam:
       config:
         - subnet: 172.19.0.0/24
+
+volumes:
+  db_data:

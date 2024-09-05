@@ -1,4 +1,4 @@
-# Observability2025
+# Observability2024
 ## 1st Assignment: Setting up and Configuring Prometheus, Using Exporters
 
 You need to install and configure Prometheus for system monitoring using Docker. The task involves collecting metrics from all system components, including CMS, Nginx, PHP-FPM, MySQL, and checking service availability using the blackbox exporter.

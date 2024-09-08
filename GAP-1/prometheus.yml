@@ -2,10 +2,6 @@ global:
   scrape_interval: 15s
   scrape_timeout: 10s
   evaluation_interval: 5s
-  scrape_protocols:
-  - OpenMetricsText1.0.0
-  - OpenMetricsText0.0.1
-  - PrometheusText0.0.4
   external_labels:
     environment: prometheus-demo
 
@@ -13,71 +9,48 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-            - alertmanager:9093
+            - '172.19.0.17:9093'  # Updated Alertmanager IP address
 
 rule_files:
   - /etc/prometheus/alert.rules.yml
 
 scrape_configs:
   - job_name: prometheus
-    honor_timestamps: true
-    track_timestamps_staleness: false
     scrape_interval: 15s
     scrape_timeout: 10s
-    scrape_protocols:
-    - OpenMetricsText1.0.0
-    - OpenMetricsText0.0.1
-    - PrometheusText0.0.4
     metrics_path: /metrics
-    scheme: http
     static_configs:
       - targets: ['localhost:9090']
 
   - job_name: 'node'
-    honor_timestamps: true
     scrape_interval: 15s
     scrape_timeout: 10s
     metrics_path: /metrics
-    scheme: http
     static_configs:
-      - targets: 
-        - '172.19.0.18:9100'  # Node Exporter
+      - targets:
+        - '172.19.0.21:9100'  # Updated Node Exporter IP address
 
   - job_name: mysql_exporter
     static_configs:
-      - targets: ['172.19.0.20:9104']  # MySQL Exporter
+      - targets: ['172.19.0.23:9104']  # Updated MySQL Exporter IP address
 
   - job_name: nginx_exporter
     static_configs:
-      - targets: ['172.19.0.17:9113']  # NGINX Exporter
+      - targets: ['172.19.0.20:9113']  # Updated NGINX Exporter IP address
   
   - job_name: grafana
-    honor_timestamps: true
-    track_timestamps_staleness: false
     scrape_interval: 15s
     scrape_timeout: 10s
-    scrape_protocols:
-    - OpenMetricsText1.0.0
-    - OpenMetricsText0.0.1
-    - PrometheusText0.0.4
     metrics_path: /metrics
-    scheme: http
     static_configs:
-      - targets: ['172.19.0.16:3000']  # Grafana
+      - targets: ['172.19.0.19:3000']  # Updated Grafana IP address
 
   - job_name: alertmanager
-    honor_timestamps: true
-    track_timestamps_staleness: false
     scrape_interval: 15s
     scrape_timeout: 10s
-    scrape_protocols:
-    - OpenMetricsText1.0.0
-    - OpenMetricsText0.0.1
-    - PrometheusText0.0.4
     metrics_path: /metrics
-    scheme: http
     static_configs:
-      - targets: ['172.19.0.14:9093']  # Alertmanager
+      - targets: ['172.19.0.17:9093']  # Updated Alertmanager IP address
 
   - job_name: blackbox
     scrape_interval: 60s
@@ -86,31 +59,31 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - http://172.19.0.10:80  # CMS
+          - http://172.19.0.15:80  # Updated CMS IP address
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
       - source_labels: [__param_target]
         target_label: instance
       - target_label: __address__
-        replacement: 172.19.0.19:9115  # Blackbox Exporter
+        replacement: 172.19.0.22:9115  # Updated Blackbox Exporter IP address
 
   - job_name: flask_app
     metrics_path: /metrics
     static_configs:
-      - targets: ['172.19.0.21:5000']  # Flask App
+      - targets: ['172.19.0.24:5000']  # Updated Flask App IP address
 
   - job_name: pushgateway
     honor_labels: true
     static_configs:
-      - targets: ['172.19.0.15:9091']  # Pushgateway
+      - targets: ['172.19.0.18:9091']  # Updated Pushgateway IP address
 
   - job_name: viktoria_metrics
     static_configs:
-      - targets: ['172.19.0.22:8428']  # Victoria Metrics
+      - targets: ['172.19.0.25:8428']  # Updated Victoria Metrics IP address
 
 remote_write:
-  - url: "http://172.19.0.22:8428/api/v1/write"  # Victoria Metrics
+  - url: "http://172.19.0.25:8428/api/v1/write"  # Updated Victoria Metrics IP address
     write_relabel_configs:
       - source_labels: [__address__]
         target_label: site

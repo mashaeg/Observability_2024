@@ -56,7 +56,28 @@ To get the IP address of the CMS container:
 ```bash
 docker inspect -f '{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}' cms
 ```
+### Port Mappings
 
+Services are exposing the ports and mapping them to the host machine
+```bash
+services:
+  nginx:
+    ports:
+      - "8080:80"  # Maps host port 8080 to container port 80
+  grafana:
+    ports:
+      - "3000:3000"  # Maps host port 3000 to container port 3000
+```
+If you want to access services using their container IPs (such as 172.19.0.x), this might not work directly from the host due to Docker’s networking isolation.
+
+### Host Network Mode (If Needed)
+
+If you absolutely need to use container IPs or want to eliminate network isolation, you can use the host network mode in Docker:
+```bash
+services:
+  nginx:
+    network_mode: "host"
+```
 ### Push to Git
 To push the changes to the Git repository:  
 ```bash

@@ -25,15 +25,17 @@ receivers:
     telegram_configs:
       - send_resolved: true
         api_url: https://api.telegram.org
-        bot_token: '7227233537:AAFZ9HArr2ccLT8kqX65RE1RLT7wNQ-OGrA'
-        chat_id: 416835955
+        bot_token: ${TELEGRAM_BOT_TOKEN}  # Use environment variable
+        #chat_id: ${TELEGRAM_CHAT_ID}
+        chat_id: 416835955 # ${TELEGRAM_CHAT_ID} variable is being treated as a string, but it needs to be an integer (int64). Keep number
         message: '{{ template "telegram.default.message" . }}'
 
   - name: 'slack'
     slack_configs:
       - send_resolved: true
-        api_url: 'https://hooks.slack.com/services/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'
-        channel: '#test'
+        api_url: 'https://hooks.slack.com/services/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'  # Use environment variable
+        #api_url_secret: '${SLACK_API_URL_SECRET}'  # Use environment variable
+        channel: '#alertmanager'
         text: '{{ template "slack.default.message" . }}'
 
 templates:

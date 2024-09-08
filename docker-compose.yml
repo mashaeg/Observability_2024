@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   cms:
     image: wordpress:latest
     container_name: cms
@@ -17,19 +18,19 @@ services:
     networks:
       monitoring:
         ipv4_address: 172.19.0.10
-
+# MySQL for Zabbix and WordPress
   db:
     image: mysql:5.7
     container_name: db
-    platform: linux/amd64  # Adding platform specifier
+    platform: linux/amd64
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: wordpress
+      MYSQL_DATABASE: wordpress  # Default to WordPress database
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress_password
     volumes:
-    - db_data:/var/lib/mysql
+      - db_data:/var/lib/mysql
     networks:
       monitoring:
         ipv4_address: 172.19.0.11
@@ -49,7 +50,7 @@ services:
       - ./nginx_conf:/etc/nginx/conf.d
     networks:
       monitoring:
-        ipv4_address: 172.19.0.12
+        ipv4_address: 172.19.0.15
     depends_on:
       - cms
 
@@ -69,7 +70,7 @@ services:
       - 9090:9090
     networks:
       monitoring:
-        ipv4_address: 172.19.0.13
+        ipv4_address: 172.19.0.16
     depends_on:
       - viktoria_metrics
     restart: always 
@@ -87,13 +88,13 @@ services:
       - '--storage.path=/alertmanager'
     ports:
       - "9093:9093"
-    environment:
-      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+    env_file:
+      - ./.env  # Reference to your environment file
     expose:
       - 9093
     networks:
       monitoring:
-        ipv4_address: 172.19.0.14
+        ipv4_address: 172.19.0.17
 
   pushgateway:
     image: prom/pushgateway:latest
@@ -103,7 +104,7 @@ services:
       - "9091:9091"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.15
+        ipv4_address: 172.19.0.18
 
   grafana:
     image: grafana/grafana:9.5.15
@@ -120,7 +121,7 @@ services:
       - "3000:3000"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.16
+        ipv4_address: 172.19.0.19
 
   nginx_exporter:
     image: nginx/nginx-prometheus-exporter:latest
@@ -131,13 +132,14 @@ services:
       - "9113:9113"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.17
+        ipv4_address: 172.19.0.20
     depends_on:
       - nginx
 
   node_exporter:
     image: prom/node-exporter:latest
     container_name: node_exporter
+    platform: linux/amd64  # Force the amd64 platform
     command:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
@@ -152,7 +154,7 @@ services:
       - "/:/rootfs:ro"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.18
+        ipv4_address: 172.19.0.21
 
   blackbox_exporter:
     image: prom/blackbox-exporter:latest
@@ -164,7 +166,7 @@ services:
       - ./GAP-1/blackbox.yml:/config/blackbox.yml
     networks:
       monitoring:
-        ipv4_address: 172.19.0.19
+        ipv4_address: 172.19.0.22
 
   mysql_exporter:
     image: prom/mysqld-exporter:v0.12.1
@@ -176,7 +178,7 @@ services:
       - "9104:9104"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.20
+        ipv4_address: 172.19.0.23
     depends_on:
       db:
         condition: service_healthy
@@ -189,7 +191,7 @@ services:
       - "5000:5000"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.21
+        ipv4_address: 172.19.0.24
     restart: always
   
   viktoria_metrics:
@@ -206,7 +208,7 @@ services:
       - "--httpListenAddr=:8428"
     networks:
       monitoring:
-        ipv4_address: 172.19.0.22
+        ipv4_address: 172.19.0.25
     restart: always
 
 networks:
@@ -218,3 +220,5 @@ networks:
 
 volumes:
   db_data:
+  grafana_data:
+  viktoria_data:

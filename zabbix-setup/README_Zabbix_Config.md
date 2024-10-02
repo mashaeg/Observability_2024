@@ -45,11 +45,13 @@ sudo chmod 664 /usr/local/zsender.log
 
 #### Summary of ports:
 
-Zabbix Server (default)	10051	TCP	Inbound	Zabbix Server
-Zabbix Agent	10050	TCP	Inbound	Zabbix Agent Host
-Telegram API (HTTPS)	443	TCP	Outbound	Zabbix Server
-Zabbix Web UI (HTTP)	80	TCP	Inbound	Zabbix Server
-Zabbix Web UI (HTTPS)	443	TCP	Inbound	Zabbix Server
+| Service                | Port  | Protocol | Direction | Source/Target        |
+|------------------------|-------|----------|-----------|----------------------|
+| Zabbix Server (default) | 10051 | TCP      | Inbound   | Zabbix Server        |
+| Zabbix Agent            | 10050 | TCP      | Inbound   | Zabbix Agent Host    |
+| Telegram API (HTTPS)    | 443   | TCP      | Outbound  | Zabbix Server        |
+| Zabbix Web UI (HTTP)    | 80    | TCP      | Inbound   | Zabbix Server        |
+| Zabbix Web UI (HTTPS)   | 443   | TCP      | Inbound   | Zabbix Server        |
 
 ---
 
@@ -93,30 +95,31 @@ curl -s --max-time 10 -d "chat_id=$chatId&disable_web_page_preview=1&text=$messa
 
 ### 3. LLD and Trigger Setup
 
-#### 3.1 Low-Level Discovery (LLD)
-Create LLD rules to discover custom metrics:
-- Go to **Configuration > Hosts**.
-- Select **Discovery rules** and create a new rule:
-  - **Name**: Otus Important Metrics
-  - **Key**: `otus_important_metrics.discovery`
-  - **Type**: Zabbix agent (active)
-  - **LLD macros**:
-    ```
-    {#METRICNAME}
-    ```
+#### 3.0 Create Templae
+Template name: otus_lld
+Template groups: Templates/Operating systems
 
-#### 3.2 Prototypes for Items and Triggers
+#### 3.1 Create disovery rule
+Create LLD rules to discover custom metrics on the new template:
+- Select **Discovery rules** and create a new rule:
+  - **Name**: otus.discovery
+  - **Key**: otus.discovery
+  - **Type**: Zabbix agent
+  - **Update interval**: 1m
+
+#### 3.2 Create new Prototypes for Items and Triggers
 - Create item prototypes for discovered metrics:
+  - **Name**: Number of {#METRICNAME} in stock
+  - **Type**: Zabbix trapper
+  - **Type of information**: Numeric (unsigned)
   - **Key**: `otus_important_metrics[{#METRICNAME}]`
 - Create trigger prototypes:
-  - **Expression**:
-    ```
-    last(/otus_lld/otus_important_metrics[{#METRICNAME}])>95
-    ```
-  - **Recovery Expression**:
-    ```
-    last(/otus_lld/otus_important_metrics[{#METRICNAME}])<90
-    ```
+  - **Name**: Number of {#METRICNAME} is too high
+  - **Severity**: High
+  - **Problem expression**: last(/otus_lld/otus_important_metrics[{#METRICNAME}])>95
+  - **Recovery expression**: last(/otus_lld/otus_important_metrics[{#METRICNAME}])<95
+
+#### 3.3 Add new template to Host-A
 
 ---
 

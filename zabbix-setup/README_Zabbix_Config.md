@@ -96,8 +96,9 @@ curl -s --max-time 10 -d "chat_id=$chatId&disable_web_page_preview=1&text=$messa
 ### 3. LLD and Trigger Setup
 
 #### 3.0 Create Templae
-Template name: otus_lld
-Template groups: Templates/Operating systems
+Create new template - Data Collection -> Create New Template
+- **Template name**: otus_lld
+- **Template group**: Templates/Operating systems
 
 #### 3.1 Create disovery rule
 Create LLD rules to discover custom metrics on the new template:

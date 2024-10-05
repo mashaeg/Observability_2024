@@ -1,0 +1,183 @@
+version: '3'
+services:
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=db:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$WORDPRESS_DB_NAME
+    volumes:
+      - wordpress_data:/var/www/html
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.wordpress.rule=Host(`192.168.0.24`)"
+      - "traefik.http.routers.wordpress.entrypoints=web"
+      - "traefik.http.services.wordpress.loadbalancer.server.port=80"
+
+    depends_on:
+      - db
+    networks:
+      - web
+
+  db:
+    image: mysql:8.0
+    platform: linux/arm64/v8
+    container_name: wordpress_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    command: '--default-authentication-plugin=mysql_native_password'
+    networks:
+      - web
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+      - ./influxdb/init:/docker-entrypoint-initdb.d:ro
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    networks:
+      - web
+
+  chronograf:
+    image: chronograf:latest
+    container_name: chronograf
+    ports:
+      - "8888:8888"
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+    depends_on:
+      - influxdb
+    networks:
+      - web
+
+  kapacitor:
+    image: kapacitor:latest
+    container_name: kapacitor
+    depends_on:
+      - influxdb
+    volumes:
+      - ./kapacitor/replay:/var/lib/kapacitor/replay
+      - ./kapacitor/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro
+    environment:
+      - KAPACITOR_INFLUXDB_URLS=http://influxdb:8086  # Updated
+      - KAPACITOR_INFLUXDB_TOKEN=${INFLUX_TOKEN}
+      - KAPACITOR_INFLUXDB_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - KAPACITOR_REPLAY_DIR=/var/lib/kapacitor/replay
+      - KAPACITOR_LOGGING_LEVEL=INFO
+    networks:
+      - web
+
+  traefik:
+    image: traefik:v2.5
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=DEBUG"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    networks:
+      - web
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    ports:
+      - "9100:9100"
+    networks:
+      - web
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    environment:
+      - INFLUX_TOKEN=${INFLUX_TOKEN}
+      - INFLUX_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - INFLUX_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      - wordpress
+      - db
+      - influxdb
+      - cadvisor
+      - node-exporter
+    networks:
+      - web
+
+volumes:
+  db_data:
+    labels:
+      - "project=tick_stack"
+      - "component=mysql"
+      - "purpose=database_storage"
+  wordpress_data:
+    labels:
+      - "project=tick_stack"
+      - "component=wordpress"
+      - "purpose=cms_files"
+  influxdb_data:
+    labels:
+      - "project=tick_stack"
+      - "component=influxdb"
+      - "purpose=time_series_data"
+  influxdb_config:
+    labels:
+      - "project=tick_stack"
+      - "component=influxdb"
+      - "purpose=configuration"
+
+networks:
+  web:
+    driver: bridge

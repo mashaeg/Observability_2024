@@ -1,0 +1,5 @@
+wordpress
+.DS_Store
+backup/.env copy
+backup/telegraf_backup.conf
+backup/telegraf_backup2.conf

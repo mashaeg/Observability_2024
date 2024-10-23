@@ -1,0 +1,123 @@
+version: '3'
+services:
+  wordpress:
+    image: wordpress:fpm
+    container_name: wordpress
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - WORDPRESS_DB_HOST=db:3306
+      - WORDPRESS_DB_USER=$MYSQL_USER
+      - WORDPRESS_DB_PASSWORD=$MYSQL_PASSWORD
+      - WORDPRESS_DB_NAME=$WORDPRESS_DB_NAME
+    volumes:
+      - wordpress_data:/var/www/html
+    networks:
+      - monitoring_net
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - wordpress_data:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - wordpress
+    networks:
+      - monitoring_net
+
+  db:
+    image: mysql:8.0
+    container_name: wordpress_db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - monitoring_net
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN}
+    networks:
+      - monitoring_net
+
+  chronograf:
+    image: chronograf:latest
+    container_name: chronograf
+    ports:
+      - "8888:8888"
+    environment:
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=${INFLUX_TOKEN}
+      - INFLUXDB_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring_net
+
+  kapacitor:
+    image: kapacitor:latest
+    container_name: kapacitor
+    ports:
+      - "9092:9092"
+    volumes:
+      - ./kapacitor/kapacitor.conf:/etc/kapacitor/kapacitor.conf:ro
+      - ./kapacitor/tasks:/var/lib/kapacitor/tasks
+      - kapacitor_data:/var/lib/kapacitor
+    environment:
+      - KAPACITOR_INFLUXDB_0_URLS=http://influxdb:8086
+      - KAPACITOR_INFLUXDB_0_TOKEN=${INFLUX_TOKEN}
+      - KAPACITOR_INFLUXDB_0_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring_net
+
+  telegraf:
+    image: telegraf:latest
+    container_name: telegraf
+    volumes:
+      - ./telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    environment:
+      - INFLUX_TOKEN=${INFLUX_TOKEN}
+      - INFLUX_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - INFLUX_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      - influxdb
+    networks:
+      - monitoring_net
+
+volumes:
+  wordpress_data:
+  db_data:
+  influxdb_data:
+  influxdb_config:
+  kapacitor_data:
+
+networks:
+  monitoring_net:
+    driver: bridge

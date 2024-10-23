@@ -1,0 +1,39 @@
+dbrp "my_bucket"."autogen"
+
+// CPU Alert
+stream
+    |from()
+        .measurement('cpu')
+        .groupBy('host')
+    |alert()
+        .warn(lambda: "usage_idle" < 30)
+        .crit(lambda: "usage_idle" < 10)
+        .message('{{ .Level }}: CPU usage high on {{ index .Tags "host" }}')
+
+// Memory Alert
+stream
+    |from()
+        .measurement('mem')
+        .groupBy('host')
+    |alert()
+        .warn(lambda: "used_percent" > 80)
+        .crit(lambda: "used_percent" > 90)
+        .message('{{ .Level }}: Memory usage on {{ index .Tags "host" }} is {{ index .Fields "used_percent" }}%')
+
+// WordPress HTTP Response Alert (500 errors)
+stream
+    |from()
+        .measurement('http_response')
+    |alert()
+        .crit(lambda: "response_code" >= 500)
+        .message('{{ .Level }}: WordPress returning 500 errors')
+
+// MySQL Connections Alert
+stream
+    |from()
+        .measurement('mysql')
+        .groupBy('host')
+    |alert()
+        .warn(lambda: "threads_connected" > 80)
+        .crit(lambda: "threads_connected" > 100)
+        .message('{{ .Level }}: High number of MySQL connections: {{ index .Fields "threads_connected" }}')

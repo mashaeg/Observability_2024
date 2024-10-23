@@ -1,0 +1,10 @@
+.cache
+.dotnet
+.local
+.ssh
+.vscode-server
+.bash_history
+.bashrc
+.cloud-locale-test.skip
+.profile
+.wget-hsts

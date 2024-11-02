@@ -95,6 +95,10 @@ curl -s --max-time 10 -d "chat_id=$chatId&disable_web_page_preview=1&text=$messa
 
 ### 3. LLD and Trigger Setup
 
+### Install zabbix-sender
+sudo apt install zabbix-sender
+systemctl restart zabbix-agent.service
+
 #### 3.0 Create Templae
 Create new template - Data Collection -> Create New Template
 - **Template name**: otus_lld

@@ -1,0 +1,67 @@
+{
+  "version": "8.15.3",
+  "objects": [
+    {
+      "id": "system-metrics-dashboard",
+      "type": "dashboard",
+      "attributes": {
+        "title": "System Metrics Overview",
+        "hits": 0,
+        "description": "System metrics dashboard showing CPU, Memory, and Network usage",
+        "panelsJSON": [
+          {
+            "gridData": {
+              "x": 0,
+              "y": 0,
+              "w": 24,
+              "h": 15,
+              "i": "1"
+            },
+            "version": "8.15.3",
+            "type": "visualization",
+            "visualization": {
+              "title": "CPU Usage",
+              "type": "gauge",
+              "params": {
+                "type": "gauge",
+                "addTooltip": true,
+                "addLegend": false,
+                "gauge": {
+                  "verticalSplit": false,
+                  "extendRange": true,
+                  "percentageMode": true,
+                  "gaugeType": "Arc",
+                  "gaugeStyle": "Full",
+                  "backStyle": "Full",
+                  "orientation": "vertical",
+                  "colorSchema": "Green to Red",
+                  "gaugeColorMode": "Labels",
+                  "colorsRange": [
+                    { "from": 0, "to": 60 },
+                    { "from": 60, "to": 85 },
+                    { "from": 85, "to": 100 }
+                  ],
+                  "labels": {
+                    "show": true,
+                    "color": "black"
+                  }
+                }
+              },
+              "aggs": [
+                {
+                  "id": "1",
+                  "enabled": true,
+                  "type": "avg",
+                  "schema": "metric",
+                  "params": {
+                    "field": "system.cpu.user.pct"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

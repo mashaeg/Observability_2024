@@ -1,0 +1,44 @@
+metricbeat.modules:
+- module: system
+  metricsets:
+    - cpu
+    - load
+    - memory
+    - network
+    - process
+  enabled: true
+  period: 10s
+
+- module: nginx
+  metricsets: ["stubstatus"]
+  enabled: true
+  period: 10s
+  hosts: ["http://localhost/nginx_status"]
+
+- module: mysql
+  metricsets: ["status", "performance"]
+  enabled: true
+  period: 10s
+  hosts: ["tcp(localhost:3306)/"]
+  username: metricbeat
+  password: "MetricBeat123!@#"
+
+setup.template.settings:
+  index.number_of_shards: 1
+  index.number_of_replicas: 1
+
+output.elasticsearch:
+  hosts: ["10.114.0.3:9200"]
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/metricbeat
+  name: metricbeat
+  keepfiles: 7
+  permissions: 0644

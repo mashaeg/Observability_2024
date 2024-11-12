@@ -1,0 +1,55 @@
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/nginx/access.log
+  fields:
+    log_type: nginx
+  fields_under_root: true
+  processors:
+    - dissect:
+        tokenizer: "%{client_ip} - %{user} [%{timestamp}] \"%{method} %{request} HTTP/%{httpversion}\" %{status_code} %{size} \"%{referrer}\" \"%{agent}\""
+        field: "message"
+        target_prefix: "nginx"
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/mysql/error.log
+  fields:
+    log_type: mysql
+  fields_under_root: true
+
+- type: log
+  enabled: true
+  paths:
+    - /var/log/php8.1-fpm.log
+  fields:
+    log_type: php-fpm
+  fields_under_root: true
+
+output.elasticsearch:
+  hosts: ["10.114.0.3:9200"]
+  index: "%{[log_type]}-logs-%{+yyyy.MM.dd}"
+
+setup.template.enabled: true
+setup.template.name: "logs"
+setup.template.pattern: "*-logs-*"
+
+path.data: /var/lib/filebeat
+path.logs: /var/log/filebeat
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
+
+# Performance tuning
+max_procs: 1
+queue.mem:
+  events: 4096
+  flush.min_events: 512
+  flush.timeout: "5s"

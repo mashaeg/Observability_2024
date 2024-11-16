@@ -23,7 +23,7 @@ filebeat.inputs:
 - type: log
   enabled: true
   paths:
-    - /var/log/php8.1-fpm.log
+    - /var/log/php8.3-fpm.log
   fields:
     log_type: php-fpm
   fields_under_root: true

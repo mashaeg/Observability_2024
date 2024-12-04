@@ -11,7 +11,6 @@ service zabbix-agent status
 
 service mysql status
 apt install mysql-server
-apt install mysql-server
 service mysql status
 mysql
 mysq> create database zabbix character set utf8mb4 collate utf8mb4_bin;
